@@ -9,8 +9,8 @@ Versioning and Git tags in the form `vMAJOR.MINOR.PATCH`.
 
 - Added required CI, protected development/release branches, weekly release
   procedures, and a manually dispatched, validated draft-release workflow.
-- Updated browser fixtures so phone verification and attachment actions run
-  reliably in the required Chromium checks.
+- Updated the phone-verification browser fixture for Security and kept the
+  mobile Latest control clear of attachment action buttons on short screens.
 
 ### Changed
 
