@@ -315,6 +315,9 @@ test("chat sidebar, image preview, and download menus fit desktop and short phon
       await dialog.waitFor();
       await page.screenshot({ path: path.join(tmpdir(), `neura-chat-preview-${viewport.width}x${viewport.height}.png`) });
       await dialog.getByRole("button", { name: "Close", exact: true }).click();
+      // Restoring focus after a dialog can leave the attachment at the scroll edge.
+      // Bring its action into the reading area, clear of the floating Latest button.
+      await page.getByRole("button", { name: "Actions for chat-preview.svg" }).evaluate(element => element.scrollIntoView({ block: "center" }));
       await page.getByRole("button", { name: "Actions for chat-preview.svg" }).click();
       const menu = page.getByRole("menu", { name: "Attachment actions for chat-preview.svg" });
       const box = await menu.boundingBox();
@@ -323,6 +326,9 @@ test("chat sidebar, image preview, and download menus fit desktop and short phon
       const save = page.getByRole("dialog", { name: "Download to Workspace" });
       await save.getByRole("button", { name: "Save", exact: true }).click();
       await save.waitFor({ state: "detached" });
+      // Restoring focus after a dialog can leave the attachment at the scroll edge.
+      // Bring its action into the reading area, clear of the floating Latest button.
+      await page.getByRole("button", { name: "Actions for chat-preview.svg" }).evaluate(element => element.scrollIntoView({ block: "center" }));
       await page.getByRole("button", { name: "Actions for chat-preview.svg" }).click();
       const downloading = page.waitForEvent("download");
       await page.getByRole("menuitem", { name: "Download", exact: true }).click();

@@ -1,0 +1,71 @@
+name: CI
+on:
+  pull_request:
+    branches: [main, dev, 'release/**']
+  push:
+    branches: [main, dev, 'release/**']
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18.6-bookworm@sha256:1c59e2c3c818eaa0f0628f695b36e7c9e362d6b219b36a54a32df645cbd7e1af
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: neural_labs_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgresql://postgres@localhost:5432/neural_labs_test
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.22.2'
+          cache: npm
+          cache-dependency-path: '**/package-lock.json'
+      - run: bash bin/ci-install
+      - run: make validate
+  browser:
+    name: browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.22.2'
+          cache: npm
+          cache-dependency-path: '**/package-lock.json'
+      - run: bash bin/ci-install
+      - run: tools/ci/node_modules/.bin/playwright install --with-deps chromium
+      - run: npm --prefix mcp run build && npm --prefix workspace/desktop run build
+      - run: bash bin/ci-browser
+  branch-policy:
+    name: branch-policy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Restrict release promotion sources
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ "$EVENT" == pull_request && "$BASE" == main ]]; then
+            [[ "$HEAD_REPO" == "$REPO" ]] || exit 1
+            case "$HEAD" in release/*|hotfix/*) ;; *) echo 'main accepts release/* or hotfix/* PRs only'; exit 1 ;; esac
+          fi

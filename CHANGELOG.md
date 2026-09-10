@@ -5,6 +5,13 @@ Versioning and Git tags in the form `vMAJOR.MINOR.PATCH`.
 
 ## [Unreleased]
 
+### Development workflow
+
+- Added required CI, protected development/release branches, weekly release
+  procedures, and a manually dispatched, validated draft-release workflow.
+- Updated browser fixtures so phone verification and attachment actions run
+  reliably in the required Chromium checks.
+
 ### Changed
 
 - Added a global Twilio SMS/MMS plugin with encrypted administrator-managed

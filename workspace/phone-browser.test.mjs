@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
 test(
-  "phone verification in Personalization on mobile and desktop",
+  "phone verification in Security on mobile and desktop",
   { skip: !process.env.PLAYWRIGHT_MODULE_PATH, timeout: 60000 },
   async () => {
     const require = createRequire(import.meta.url);

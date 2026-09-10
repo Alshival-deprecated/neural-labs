@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname -- "${BASH_SOURCE[0]}")/.."
+export PLAYWRIGHT_MODULE_PATH="${PWD}/tools/ci/node_modules/playwright"
+export BROWSER_ENGINE=chromium
+export DESKTOP_TEST_ORIGIN=http://127.0.0.1:4196
+export MOBILE_TEST_ORIGIN="$DESKTOP_TEST_ORIGIN"
+export ITEM_ACTIONS_TEST_ORIGIN="$DESKTOP_TEST_ORIGIN"
+export CHAT_VIDEO_TEST_ORIGIN="$DESKTOP_TEST_ORIGIN"
+node --input-type=module -e 'import { createRequire } from "node:module"; const require = createRequire(import.meta.url); const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH); const browser = await chromium.launch({headless:true}); await browser.close();'
+node workspace/desktop/node_modules/vite/bin/vite.js workspace/desktop --host 127.0.0.1 --port 4196 --strictPort > "${TMPDIR:-/tmp}/neural-labs-ci-vite.log" 2>&1 &
+fixture_pid=$!
+trap 'kill "$fixture_pid" 2>/dev/null || true; wait "$fixture_pid" 2>/dev/null || true' EXIT
+for attempt in {1..60}; do
+  kill -0 "$fixture_pid" || { cat "${TMPDIR:-/tmp}/neural-labs-ci-vite.log"; exit 1; }
+  if curl --fail --silent "$DESKTOP_TEST_ORIGIN/workspace/tests/desktop.html" > /dev/null; then
+    node --test --test-concurrency=1 workspace/*browser.test.mjs
+    exit
+  fi
+  sleep 1
+done
+cat "${TMPDIR:-/tmp}/neural-labs-ci-vite.log"
+exit 1

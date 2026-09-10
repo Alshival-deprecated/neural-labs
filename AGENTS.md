@@ -19,3 +19,17 @@ These instructions apply to the Neural Labs repository.
 - Keep shell scripts compatible with Bash and pass `bash -n`.
 - Keep tenant examples generic and free of personal data.
 - Update the architecture decision records when a trust boundary changes.
+
+## Version control and releases
+
+- Follow [the release workflow](wiki/release-workflow.md).
+- Start new tasks on `feature/*` or `fix/*` from current `origin/dev`, preferably
+  in an isolated worktree. Preserve existing uncommitted work; never blindly stage it.
+- Do not commit directly on `main`, `dev`, or `release/*`; use pull requests.
+- Squash feature PRs into `dev`; use merge commits for release promotion and
+  synchronization. `main` accepts only approved `release/*` or `hotfix/*` PRs.
+- Keep `CHANGELOG.md` updated for user-visible work. Release versions, lockfiles,
+  README, and release records must agree before tagging.
+- Weekly releases need passing CI, recorded staging/rollback evidence, and human
+  signoff. Agents may prepare a release; publication and host deployment are explicit
+  operator actions. Never move a published version tag.
