@@ -1,0 +1,72 @@
+name: Draft release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Approved version, e.g. v0.4.0'
+        required: true
+        type: string
+      commit:
+        description: 'Full approved main commit SHA'
+        required: true
+        type: string
+      staging_passed:
+        description: 'Staging smoke tests and rollback rehearsal recorded in release notes'
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: draft-release
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require approved main commit and staging signoff
+        env:
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          APPROVED_SHA: ${{ inputs.commit }}
+          STAGING: ${{ inputs.staging_passed }}
+        run: |
+          [[ "$REF" == refs/heads/main && "$SHA" == "$APPROVED_SHA" && "$STAGING" == true ]]
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.22.2'
+      - run: node bin/release-check.mjs "$VERSION"
+        env:
+          VERSION: ${{ inputs.version }}
+  checks:
+    needs: preflight
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+  draft:
+    needs: [preflight, checks]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Create immutable tag and draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ inputs.version }}
+          APPROVED_SHA: ${{ inputs.commit }}
+        run: |
+          node bin/release-check.mjs "$VERSION"
+          current_main=$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq .object.sha)
+          [[ "$current_main" == "$APPROVED_SHA" ]] || { echo 'main changed; revalidate the new commit'; exit 1; }
+          # GitHub rejects an existing ref; never overwrite a published tag.
+          gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$VERSION" -f "sha=$APPROVED_SHA"
+          gh release create "$VERSION" --verify-tag --draft --title "$VERSION" --notes-file "wiki/releases/$VERSION.md"

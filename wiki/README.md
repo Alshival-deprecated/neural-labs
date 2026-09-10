@@ -1,5 +1,7 @@
 # Neural Labs wiki
 
+- [Development and release workflow](release-workflow.md)
+
 - [v0.3.2 release record](releases/v0.3.2.md)
 - [v0.3.1 release record](releases/v0.3.1.md)
 - [v0.3.0 release record](releases/v0.3.0.md)

@@ -1,6 +1,8 @@
 .PHONY: validate test build compose-config security
 
 validate:
+	bash -n bin/ci-install bin/ci-browser
+	node --test tests/release-check.test.mjs
 	bash tests/public_boundary_test.sh
 	node bin/openclaw-release.mjs check
 	node --test tests/openclaw-release.test.mjs tests/openclaw-tree.test.mjs

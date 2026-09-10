@@ -698,7 +698,7 @@ kbd { color: #87888f; font-family: inherit; font-size: var(--desktop-font-body, 
 .neura-app.is-mobile .message-body pre { max-width: 100%; overflow-x: auto; }
 .neura-app.is-mobile .message-body table { display: block; max-width: 100%; overflow-x: auto; }
 .neura-app.is-mobile .neura-welcome { min-height: 0; padding: 16px 8px; }
-.neura-app.is-mobile .jump-to-latest { min-height: 44px; }
+.neura-app.is-mobile .jump-to-latest { min-height: 44px; left: .8rem; right: auto; }
 .neura-app.is-mobile .neura-composer-area { flex-shrink: 0; padding: 6px 8px max(8px, env(safe-area-inset-bottom)); }
 .neura-app.is-mobile .composer-row { flex-wrap: wrap; gap: 4px; }
 .neura-app.is-mobile .composer-row textarea { order: -1; flex: 1 0 100%; width: 100%; min-height: 44px; max-height: 128px; padding: 10px; font-size: 16px; line-height: 1.45; overflow-y: auto; }

@@ -57,3 +57,5 @@ OpenClaw/ClawHub discovery.
 
 Never place tenant credentials, certificates, deployment secrets, or database
 backups in the repository.
+
+Development follows the [branch and release workflow](wiki/release-workflow.md).
